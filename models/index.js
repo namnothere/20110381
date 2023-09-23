@@ -1,0 +1,1 @@
+export * from './mygroup.model.js';
