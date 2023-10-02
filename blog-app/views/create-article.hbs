@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Create New Post</title>
+    <style>
+        body {
+            background-color: #f0f8ff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .container h1 {
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea {
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            width: 100%;
+        }
+
+        .form-group textarea {
+            height: 150px;
+        }
+
+        .form-group input[type="text"] {
+            height: 30px;
+        }
+
+        .btn-container {
+            text-align: center;
+        }
+
+        .btn-container button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #f8d7da; 
+            border-color: #f5c6cb; 
+            color: #721c24; 
+            border-radius: 5px;
+            opacity: 0; 
+            transition: opacity 0.5s ease-in-out;
+            z-index: 1000; 
+        }
+
+        .toast-success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+
+        .toast-fail {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .back-link {
+            top: 10px;
+            left: 10px;
+            font-size: 30px;
+            text-decoration: none;
+            position: relative;
+        }
+
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        function clearFormFields() {
+            $('#title').val('');
+            $('#author').val('');
+            $('#content').val('');
+        }
+
+        function showToast(message, level) {
+            const toast = $("#toast");
+            const toastBody = toast.find(".toast-body");
+            toastBody.text(message);
+
+            if (level === "success") {
+                toast.addClass("toast-success");
+            } else if (level === "fail") {
+                toast.addClass("toast-fail");
+            }
+
+            toast.addClass("show");
+
+            setTimeout(function() {
+                toast.removeClass("show");
+                toast.removeClass("toast-success"); 
+                toast.removeClass("toast-fail");
+            }, 2000);
+        }
+
+        $("#create-post-form").submit(function(event) {
+        event.preventDefault();
+
+        const formData = $(this).serialize();
+
+        $.ajax({
+            type: "POST",
+            url: "/articles",
+            data: formData,
+            success: function(response) {
+                showToast("Article created successfully!", "success");
+            },
+            error: function() {
+                showToast("Error occurred while creating the article.", "fail");
+            }
+        });
+        clearFormFields();
+        });
+    });
+    </script>
+
+</head>
+<body>
+    <div class="container">
+        <a class="back-link" href="/">←</a> 
+        <h1>Create New Post</h1>
+        <form method="POST" id="create-post-form">
+            <div class="form-group">
+                <label for="title">Title:</label>
+                <input type="text" id="title" name="title" required>
+            </div>
+            <div class="form-group">
+                <label for="author">Author:</label>
+                <input type="text" id="author" name="author" required>
+            </div>
+            <div class="form-group">
+                <label for="content">Content:</label>
+                <textarea id="content" name="content" required></textarea>
+            </div>
+            <div class="btn-container">
+                <button type="submit">Create Post</button>
+            </div>
+        </form>
+    </div>
+    <div id="toast" class="toast">
+        <div class="toast-header">
+            <strong class="mr-auto">Notification</strong>
+            <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="toast-body">
+            This is a cute toast notification!
+        </div>
+    </div>
+
+</body>
+</html>

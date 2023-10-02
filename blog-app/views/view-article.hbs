@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>View Article</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <style>
+        body {
+            background-color: #f0f8ff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            max-width: 80vh;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .author {
+            font-weight: bold;
+        }
+
+        .article {
+            background-color: #fff;
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .comment-box {
+            background-color: #fff;
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .comments {
+            margin-top: 20px;
+        }
+
+        .comment {
+            background-color: #f5f5f5;
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .comment h3 {
+            color: #007bff;
+        }
+
+        .comment p {
+            margin: 0;
+        }
+
+        form {
+            margin-top: 20px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #007bff; 
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #f8d7da; 
+            border-color: #f5c6cb; 
+            color: #721c24; 
+            border-radius: 5px;
+            opacity: 0; 
+            transition: opacity 0.5s ease-in-out;
+            z-index: 1000; 
+        }
+
+        .toast-success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+
+        .toast-fail {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .back-link {
+            top: 10px;
+            left: 10px;
+            font-size: 30px;
+            text-decoration: none;
+            position: relative;
+        }
+
+        .dropdown {
+            top: 10px;
+            right: 250px;
+            cursor: pointer;
+            position: absolute;
+        }
+
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+    <script>
+        $(document).ready(function() {
+
+            function enableEditing() {
+                $('#article-content').attr('contenteditable', true);
+                $('#edit-article').hide();
+                $('#ok-edit').show();
+            }
+
+            function saveEditedContent() {
+                const editedContent = $('#article-content').text();
+                const articleId = window.location.pathname.split('/').pop();
+
+                $.ajax({
+                    url: `/articles/${articleId}`,
+                    type: 'PUT',
+                    data: { content: editedContent },
+                    success: function(data) {
+                        $('#article-content').attr('contenteditable', false);
+                        $('#ok-edit').hide();
+                        $('#edit-article').show();
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error editing article:', status, error);
+                    }
+                });
+            }
+
+            function deteleArticle() {
+                const articleId = window.location.pathname.split('/').pop();
+
+                $.ajax({
+                    url: `/articles/${articleId}`,
+                    type: 'DELETE',
+                    success: function(data) {
+                        window.location.href = '/';
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error deleting article:', status, error);
+                    }
+                });
+            }
+
+            $('#edit-article').on('click', function() {
+                enableEditing();
+            });
+
+            $('#ok-edit').on('click', function() {
+                saveEditedContent();
+            });
+
+            $('#delete-article').on('click', function() {
+                deteleArticle();
+            });
+
+            function loadComments() {
+                const articleId = window.location.pathname.split('/').pop();
+
+                $.ajax({
+                    url: `/comments/articles/${articleId}`,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        console.log(data);
+                        $('.other-comments').empty();
+                        data.forEach(function(comment) {
+                            $('.other-comments').append('<div class="comment">' +
+                                '<h3>' + comment.author + '</h3>' +
+                                '<p>' + comment.content + '</p>' +
+                                '</div>');
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading comments:', status, error);
+                    }
+                });
+            }
+
+            loadComments();
+
+            function clearCommentFields() {
+                $('#author').val('');
+                $('#content').val('');
+            }
+
+            function showToast(message, level) {
+                const toast = $("#toast");
+                const toastBody = toast.find(".toast-body");
+                toastBody.text(message);
+
+                if (level === "success") {
+                    toast.addClass("toast-success");
+                } else if (level === "fail") {
+                    toast.addClass("toast-fail");
+                }
+
+                toast.addClass("show");
+
+                setTimeout(function() {
+                    toast.removeClass("show");
+                    toast.removeClass("toast-success"); 
+                    toast.removeClass("toast-fail");
+                }, 2000);
+            }
+
+            $("#comment-form").submit(function(event) {
+                event.preventDefault();
+                const articleId = window.location.pathname.split('/').pop();
+                const formData = $(this).serialize() + `&postId=${articleId}`;
+
+                $.ajax({
+                    type: "POST",
+                    url: "/comments",
+                    data: formData,
+                    success: function(response) {
+                        showToast("Comment posted successfully!", "success");
+                    },
+                    error: function() {
+                        showToast("Error occurred while posting comment.", "fail");
+                    }
+                });
+                clearCommentFields();
+                loadComments();
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <a class="back-link" href="/">←</a> 
+
+        <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="article-actions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Actions
+            </button>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="article-actions">
+                <a class="dropdown-item" href="#" id="edit-article">Edit</a>
+                <a class="dropdown-item" href="#" id="delete-article">Delete</a>
+            </div>
+        </div>
+
+        <div>
+            <h1>{{ article.title }}</h1>
+            <p class="author">Author: {{ article.author }}</p>
+
+
+            <div class="article">
+                <p id="article-content">{{ article.content }}</p>
+                <button id="ok-edit" style="display: none;">OK</button>
+            </div>
+        </div>
+            
+        <div class="comments">
+
+            <!-- Comment Box -->
+            <div class="comment-box">
+                <h3>Add a Comment</h3>
+                <form id="comment-form">
+                    <div>
+                        <label for="author">Your Name:</label>
+                        <input type="text" id="author" name="author" required>
+                    </div>
+                    <div>
+                        <label for="comment-text">Comment:</label>
+                        <textarea id="content" name="content" required></textarea>
+                    </div>
+                    <div>
+                        <button type="submit">Post</button>
+                    </div>
+                </form>
+            </div>
+
+            <h2>Comments</h2>
+            <div class="other-comments">
+                {{#each comments}}
+                    <div class="comment">
+                        <h3>{{ this.author }}</h3>
+                        <p>{{ this.text }}</p>
+                    </div>
+                {{/each}}
+            </div>
+        </div>
+    </div>
+    
+    <div id="toast" class="toast">
+        <div class="toast-header">
+            <strong class="mr-auto">Notification</strong>
+            <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="toast-body">
+            This is a cute toast notification!
+        </div>
+    </div>
+
+</body>
+</html>
