@@ -12,6 +12,18 @@ exports.viewArticle = (req, res) => {
   }
 };
 
+exports.getArticle = (req, res) => {
+  const postId = req.params.id;
+
+  const post = articles.find(post => post.id === postId);
+
+  if (post) {
+    res.json({ article: post });
+  } else {
+    res.status(404).json({ error: 'Article not found' });
+  }
+};
+
 exports.getArticles = (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;

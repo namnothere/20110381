@@ -6,4 +6,8 @@ router.get('/', function(_req, res, _next) {
   res.render('index', { posts: articles });
 });
 
+router.get('/all', function(_req, res, _next) {
+  return res.json(articles);
+});
+
 module.exports = router;
